@@ -20,6 +20,11 @@ namespace JOIEnergy.Services
             return new List<ElectricityReading>();
         }
 
+        public List<ElectricityReading> GetEligibleReadings(string smartMeterId)
+        {
+            return GetReadings(smartMeterId).Where(r => r.DeletedAt == null).ToList();
+        }
+
         public void StoreReadings(string smartMeterId, List<ElectricityReading> electricityReadings) {
             if (!MeterAssociatedReadings.ContainsKey(smartMeterId)) {
                 MeterAssociatedReadings.Add(smartMeterId, new List<ElectricityReading>());

@@ -29,6 +29,20 @@ namespace JOIEnergy.Tests
         }
 
         [Fact]
+        public void GivenMeterIdThatDoesNotExistShouldReturnNoEligibleReading()
+        {
+            Assert.Empty(meterReadingService.GetEligibleReadings("unknown-id"));
+        }
+        [Fact]
+        public void GivenMeterIdThatDoesNotConsistsEligibleReadingShouldReturnEmpty()
+        {
+            meterReadingService.StoreReadings("inactive-meter-id", new List<ElectricityReading>() {
+                new ElectricityReading() { Time = DateTime.Now.AddMinutes(-30), Reading = 35m, DeletedAt=DateTime.UtcNow },
+            }); 
+            Assert.Empty(meterReadingService.GetEligibleReadings("inactive-meter-id"));
+        }
+
+        [Fact]
         public void GivenMeterReadingThatExistsShouldReturnMeterReadings()
         {
             meterReadingService.StoreReadings(SMART_METER_ID, new List<ElectricityReading>() {
@@ -39,6 +53,19 @@ namespace JOIEnergy.Tests
 
             Assert.Equal(3, electricityReadings.Count);
         }
+
+        [Fact]
+        public void GivenEligibleMeterReadingThatExistsShouldReturnActiveMeterReadings()
+        {
+            meterReadingService.StoreReadings(SMART_METER_ID, new List<ElectricityReading>() {
+                new ElectricityReading() { Time = DateTime.Now, Reading = 25m, DeletedAt = DateTime.UtcNow }
+            });
+
+            var electricityReadings = meterReadingService.GetEligibleReadings(SMART_METER_ID);
+
+            Assert.Equal(2, electricityReadings.Count);
+        }
+
 
         [Fact]
         public void AddNewMeterId()
