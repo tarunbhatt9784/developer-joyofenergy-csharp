@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using JOIEnergy.Enums;
 
@@ -24,6 +26,9 @@ namespace JOIEnergy.Domain
 
     public class PeakTimeMultiplier
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int PeakTimeMultiplierId { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
         public decimal Multiplier { get; set; }
     }

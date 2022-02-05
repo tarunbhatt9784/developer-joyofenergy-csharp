@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JOIEnergy.Context;
 using JOIEnergy.Domain;
 using JOIEnergy.Enums;
 using JOIEnergy.Generator;
+using JOIEnergy.Repository;
 using JOIEnergy.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -55,6 +58,11 @@ namespace JOIEnergy
             services.AddSingleton((IServiceProvider arg) => readings);
             services.AddSingleton((IServiceProvider arg) => pricePlans);
             services.AddSingleton((IServiceProvider arg) => SmartMeterToPricePlanAccounts);
+            services.AddDbContext<MeterReadingContext>(options =>
+            {
+                options.UseSqlite("Data Source=MeterReadingDB.db;");
+            });
+            services.AddScoped<IPeakTimeMultiplierRepository, PeakTimeMultiplierRespository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -68,7 +76,8 @@ namespace JOIEnergy
             app.UseMvc();
         }
 
-        private Dictionary<string, List<ElectricityReading>> GenerateMeterElectricityReadings() {
+        private Dictionary<string, List<ElectricityReading>> GenerateMeterElectricityReadings()
+        {
             var readings = new Dictionary<string, List<ElectricityReading>>();
             var generator = new ElectricityReadingGenerator();
             var smartMeterIds = SmartMeterToPricePlanAccounts.Select(mtpp => mtpp.Key);
