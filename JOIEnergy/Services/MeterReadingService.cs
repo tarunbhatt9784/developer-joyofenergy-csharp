@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JOIEnergy.Domain;
 
 namespace JOIEnergy.Services
@@ -23,8 +24,17 @@ namespace JOIEnergy.Services
             if (!MeterAssociatedReadings.ContainsKey(smartMeterId)) {
                 MeterAssociatedReadings.Add(smartMeterId, new List<ElectricityReading>());
             }
-
-            electricityReadings.ForEach(electricityReading => MeterAssociatedReadings[smartMeterId].Add(electricityReading));
+            electricityReadings.ForEach(
+                newReading=>
+                    {
+                        MeterAssociatedReadings[smartMeterId]
+                            .Where(r => r.Time.CompareTo(newReading.Time) == 0)
+                            .ToList()
+                            .ForEach(reading => reading.DeletedAt = DateTime.UtcNow);
+                        MeterAssociatedReadings[smartMeterId].Add(newReading);
+                    }
+                );
+            //electricityReadings.ForEach(electricityReading => MeterAssociatedReadings[smartMeterId].Add(electricityReading));
         }
     }
 }
