@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JOIEnergy.Domain;
+using JOIEnergy.Enums;
 
 namespace JOIEnergy.Services
 {
@@ -13,16 +14,17 @@ namespace JOIEnergy.Services
             MeterAssociatedReadings = meterAssociatedReadings;
         }
 
-        public List<ElectricityReading> GetReadings(string smartMeterId) {
+        public List<ElectricityReading> GetReadings(string smartMeterId, ReadingStatus status=ReadingStatus.Eligible) {
             if (MeterAssociatedReadings.ContainsKey(smartMeterId)) {
-                return MeterAssociatedReadings[smartMeterId];
+                switch (status)
+                {
+                    case ReadingStatus.Eligible:
+                        return MeterAssociatedReadings[smartMeterId].Where(r => r.DeletedAt == null).ToList();
+                    case ReadingStatus.All:
+                        return MeterAssociatedReadings[smartMeterId];
+                }
             }
             return new List<ElectricityReading>();
-        }
-
-        public List<ElectricityReading> GetEligibleReadings(string smartMeterId)
-        {
-            return GetReadings(smartMeterId).Where(r => r.DeletedAt == null).ToList();
         }
 
         public void StoreReadings(string smartMeterId, List<ElectricityReading> electricityReadings) {
