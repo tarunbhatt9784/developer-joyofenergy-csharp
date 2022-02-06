@@ -20,7 +20,7 @@ namespace JOIEnergy.Services
 
         private decimal calculateAverageReading(List<ElectricityReading> electricityReadings)
         {
-            var newSummedReadings = electricityReadings.Select(readings => readings.Reading).Aggregate((reading, accumulator) => reading + accumulator);
+            var newSummedReadings = electricityReadings.OrderBy(r=>r.Time).Select(readings => readings.Reading).Aggregate((reading, accumulator) => reading + accumulator);
 
             return newSummedReadings / electricityReadings.Count();
         }
