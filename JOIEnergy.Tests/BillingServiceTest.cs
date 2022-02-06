@@ -1,6 +1,7 @@
 ﻿using JOIEnergy.Domain;
 using JOIEnergy.Enums;
 using JOIEnergy.Services;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,11 +19,11 @@ namespace JOIEnergy.Tests
         private Dictionary<string,List<ElectricityReading>> _meterAssociatedReadings = 
             new Dictionary<string,List<ElectricityReading>>();
         private List<ElectricityReading> _meterReadings;
-        private ICalculatorService _calculatorService;
+        private Mock<ICalculatorService> _calculatorService;
         public BillingServiceTest()
         {
             _meterReadingService = new MeterReadingService(new Dictionary<string, List<ElectricityReading>>());
-
+            _calculatorService = new Mock<ICalculatorService>();
             _meterReadings = new List<ElectricityReading>() {
                 new ElectricityReading() { Time = new DateTime(2022,01,01,0,0,0), Reading = 60m },
                 new ElectricityReading() { Time = new DateTime(2022,01,01,10,00,0), Reading = 50m },
@@ -47,8 +48,11 @@ namespace JOIEnergy.Tests
             {
                 { SMART_METER_ID,supplier}
             };
-           _calculatorService = new CalculatorService(_meterReadingService, _meterAssociatedReadings, _pricePlans);
-            _billingService = new BillingService(_meterAssociatedReadings, _smartMeterToPricePlanAccounts, _pricePlans,_calculatorService);
+            _calculatorService.Setup(s => s.CalculateCost(_meterReadings,
+                                                         Supplier.DrEvilsDarkEnergy,
+                                                         It.IsAny<DateTime>(),
+                                                         It.IsAny<DateTime>())).Returns(0);
+            _billingService = new BillingService(_meterAssociatedReadings, _smartMeterToPricePlanAccounts, _pricePlans,_calculatorService.Object);
             Bill bill = _billingService.GenerateBill(meterId,null,null);
             Assert.Equal(bill.Amount, 0);
         }
@@ -78,14 +82,18 @@ namespace JOIEnergy.Tests
             DateTime? endDate = null;
             if (!string.IsNullOrEmpty(StartDateString)) startDate = DateTime.Parse(StartDateString);
             if (!string.IsNullOrEmpty(EndDateString)) endDate = DateTime.Parse(EndDateString);
+            _calculatorService.Setup(s => s.CalculateCost(_meterReadings,
+                                                          Supplier.DrEvilsDarkEnergy,
+                                                          It.IsAny<DateTime>(),
+                                                          It.IsAny<DateTime>())).Returns(amount);
+
             DateTime expectedBillStartDate = DateTime.Parse(expectedBillStartDateString);
             DateTime expectedBillEndDate = DateTime.Parse(expectedBillEndDateString);
             _smartMeterToPricePlanAccounts = new Dictionary<string, Supplier>()
             {
                 { SMART_METER_ID,Supplier.DrEvilsDarkEnergy}
             };
-            _calculatorService= new CalculatorService(_meterReadingService, _meterAssociatedReadings, _pricePlans); 
-            _billingService = new BillingService(_meterAssociatedReadings, _smartMeterToPricePlanAccounts, _pricePlans,_calculatorService);
+            _billingService = new BillingService(_meterAssociatedReadings, _smartMeterToPricePlanAccounts, _pricePlans,_calculatorService.Object);
             Bill bill = _billingService.GenerateBill(SMART_METER_ID, startDate, endDate);
             Assert.Equal(amount, Math.Round(bill.Amount));
             Assert.Equal(expectedBillStartDate, bill.StartDate);
