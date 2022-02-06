@@ -30,7 +30,7 @@ namespace JOIEnergy.Services
         {
             Bill bill = new Bill();
             var electricityReadings = new List<ElectricityReading>();
-            Supplier supplier = new Supplier();
+            Supplier supplier = Supplier.NullSupplier;
             if (!string.IsNullOrEmpty(meterId) &&
                 _meterAssociatedReadings.TryGetValue(meterId, out electricityReadings) &&
                 electricityReadings.Count > 0 &&
